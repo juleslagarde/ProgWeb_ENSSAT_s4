@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+</head>
+<body>
+	<div>
+		<input type="text" onchange="p.currentSrc = this.value">
+		<div onclick="p.play()">play</div>
+	</div>
+	<audio id="player" controls preload tabindex="0" ontimeupdate="updateCanvas()">
+	<source type="audio/wav" src="./audio/sifflet.wav"/> 
+	Your  browser does not support HTML5 audio.
+	</audio>
+</body>
+<script>
+		p = document.getElementById('player');
+		can  = document.createElement('canvas');
+		can.width=200;
+		can.height=200;
+		c2d = can.getContext('2d');
+		c2d.lineWidth=4;
+		document.body.appendChild(can);
+		function updateCanvas(){
+			c2d.beginPath();
+			c2d.arc(50,50,25,1.5*Math.PI, (1.5+2*p.currentTime/p.duration)*Math.PI);
+			c2d.stroke();
+		}
+	</script>
+</html>
