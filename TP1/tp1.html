@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>tp1</title>
+</head>
+<body>
+	<div id="compteur"></div>
+	<script>
+		compteur = 10;
+		Ecompteur = document.getElementById("compteur");
+		update();
+		clock = setInterval(update, 1000);
+		function update(){
+			if(compteur>0){
+				Ecompteur.innerHTML=compteur--
+			}else{
+				clearInterval(clock);
+			}
+		}
+	</script>
+</body>
+</html>

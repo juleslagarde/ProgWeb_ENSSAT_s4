@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>tp2</title>
+</head>
+<body>
+	<div id="carre" style="width:100px;height:100px;background-color:red"></div>
+	<script>
+		marginLeft = 0;
+		Ecarre = document.getElementById("carre");
+		update();
+		clock = setInterval(update, 100);
+		function update(){
+			if(marginLeft<100){
+				marginLeft+=10;
+				Ecarre.style.marginLeft=marginLeft+"px"
+			}else{
+				clearInterval(clock);
+			}
+		}
+	</script>
+</body>
+</html>
