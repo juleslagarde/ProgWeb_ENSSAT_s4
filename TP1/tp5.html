@@ -1,35 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>tp2</title>
-</head>
-<body>
-	<div class="carre" style="width:100px;height:100px;background-color:red"></div>
-	<div class="carre" style="width:100px;height:100px;background-color:red"></div>
-	<div class="carre" style="width:100px;height:100px;background-color:red"></div>
-	<script>
-		marginsLeft = [];
-		clocks = [];
-		Ecarres = document.getElementsByClassName("carre");
-		setTimeout(start, 4000);
-		function start(){
-			for(let i=0; i<Ecarres.length; i++){
-				marginsLeft[i]=0;
-				setTimeout(function(){
-					let finalI=i;
-					clocks[i] = setInterval(update, 100, finalI);
-				},1000*i);
-			}
-		}
-		function update(i){
-			if(marginsLeft[i]<500){
-				marginsLeft[i]+=10;
-				Ecarres[i].style.marginLeft=marginsLeft[i]+"px"
-			}else{
-				clearInterval(clocks[i]);
-			}
-		}
-	</script>
-</body>
+	<head>
+		<meta charset="UTF-8">
+		<title>tp5</title>
+	</head>
+	<body>
+		<script>
+//creation des carres
+nb_carres = 10;
+for(let i=0; i<nb_carres; i++){
+	carre = document.createElement("div");
+	carre.style.backgroundColor="red";
+	carre.style.width="30px";
+	carre.style.height="30px";
+	carre.className="carre";
+	document.body.appendChild(carre);
+}
+//initialisation des timers
+marginsLeft = [];
+clocks = [];
+Ecarres = document.getElementsByClassName("carre");
+setTimeout(start, 4000);
+function start(){
+	for(let i=0; i<Ecarres.length; i++){
+		marginsLeft[i]=0;
+		setTimeout(function(){
+			let finalI=i;
+			clocks[i] = setInterval(update, 100, finalI);
+		},1000*i);
+	}
+}
+function update(i){
+	if(marginsLeft[i]<500){
+		marginsLeft[i]+=10;
+		Ecarres[i].style.marginLeft=marginsLeft[i]+"px"
+	}else{
+		clearInterval(clocks[i]);
+	}
+}
+		</script>
+	</body>
 </html>
