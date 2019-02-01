@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>un jeu, un jeu !!!</title>
+</head>
+<body>
+	<canvas id="screen" width=100 height=100>canvas not supported</canvas>
+	<script>
+		var ctx = document.getElementById("screen").getContext("2d");
+		var numberOfFrames = 10;
+		var nb_ticks = 0;
+		var frameIndex = 0;
+		var imageCoin = new Image();
+		imageCoin.onload = mainLoop;
+		imageCoin.src = "images/coin-sprite-animation.png";
+		//var ONE_FRAME_TIME = 1000 / 60 ;
+		function mainLoop() {
+			updateGame();
+			drawGame();
+			requestAnimationFrame(mainLoop);
+		}
+		function drawGame(){
+			ctx.fillRect(0,0,100,100);
+		  ctx.drawImage(
+		    imageCoin,
+		    frameIndex * 100 ,
+		    0,
+		    imageCoin.width / numberOfFrames,
+		    100,
+		    0,
+		    0,
+		    imageCoin.width / numberOfFrames,
+		    100);
+		}
+		function updateGame(){
+			nb_ticks+=1;
+			if(nb_ticks%4==0){
+				frameIndex=(frameIndex+1)%numberOfFrames;
+			}
+		}
+	</script>
+</body>
+</html>
