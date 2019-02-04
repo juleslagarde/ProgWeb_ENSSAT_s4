@@ -1,42 +1,85 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title>Events </title>
-    </head>
-    <body>
-    </body>
+<head>
+  <meta charset="UTF-8">
+  <title>Events </title>
+  <script src="entities.js"></script>
+</head>
+<body>
+<canvas id="screen" width="1280px" height="720px" style="border:solid 1px black"></canvas>
+</body>
 <script>
-window.addEventListener("keydown", function (event) {
-  if (event.defaultPrevented) {
-    return; // Should do nothing if the key event was already consumed.
+  var ctx = document.getElementById("screen").getContext("2d")
+
+  var player = new Sprite({x:50,y:50},"player.png",{x:4,y:4});
+  var entities=[player];
+
+  function drawGame(){
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0,0,1280,720);
+    for(let entity of entities){
+      entity.draw(ctx)
+    }
+  }
+  nb_ticks=0;
+  function mainLoop(){
+    requestAnimationFrame(mainLoop);
+    drawGame();
+    updateGame();
   }
 
-  switch (event.key) {
-    case "ArrowDown":
-      // Do something for "down arrow" key press.
-          alert("ArrowDown");
-      break;
-    case "ArrowUp":
-      // Do something for "up arrow" key press.
-      break;
-    case "ArrowLeft":
-      // Do something for "left arrow" key press.
-      break;
-    case "ArrowRight":
-      // Do something for "right arrow" key press.
-      break;
-    case "Enter":
-      // Do something for "enter" or "return" key press.
-      break;
-    case "Escape":
-      // Do something for "esc" key press.
-      break;
-    default:
-      return; // Quit when this doesn't handle the key event.
+  function updateGame(){
+    nb_ticks+=1;
+    for(let entity of entities){
+      entity.update();
+    }
   }
 
-  // Consume the event for suppressing "double action".
-  event.preventDefault();
-}, true);
-    </script>
+
+  window.addEventListener("keydown", function (event) {
+    if (event.defaultPrevented) {
+      return; // Should do nothing if the key event was already consumed.
+    }
+
+    switch (event.key) {
+      case "ArrowDown":
+        player.dir = {y:1};
+        break;
+      case "ArrowUp":
+        player.dir = {y:-1};
+        break;
+      case "ArrowLeft":
+        player.dir = {x:-1};
+        break;
+      case "ArrowRight":
+        player.dir = {x:1};
+        break;
+      case "Enter":
+        break;
+      case "Escape":
+        break;
+      default:
+        return; // Quit when this doesn't handle the key event.
+    }
+
+    // Consume the event for suppressing "double action".
+    event.preventDefault();
+  }, true);
+  let loaded
+
+  function launchIfLoaded() {
+    loaded = true
+    for (let e of entities) {
+      if (!e.loaded) {
+        loaded = false
+      }
+    }
+    if(loaded)
+      mainLoop()
+    else
+      setTimeout(launchIfLoaded,0.1)
+  }
+
+  launchIfLoaded()
+
+</script>
