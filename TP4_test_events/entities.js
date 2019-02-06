@@ -14,7 +14,7 @@ class Entity {
     this.move(this.dir)
   }
 
-  draw(ctx) {
+  draw(ctx, dt) {
     throw new Error("function draw need implementation in "+this.constructor.name);
   }
 
@@ -28,21 +28,27 @@ class Sprite extends Entity{
     super(pos);
     this.animCounter = 0;
     this.animNumber = 0;
-    this.animPlaying = false;
+    this.animPlaying = true;
+    this.animNbFrame = divide.x;
+    this.nbAnimations = divide.y;
+    this.dest = null;
     this.image = new Image();
     this.image.src = src;
     this.image.loaded = false;
+    this.width = -1;
+    this.height = -1;
+    let sprite = this;
     this.image.onload = function () {
-      this.loaded=true;
+      sprite.width = this.width/sprite.animNbFrame;
+      sprite.height = this.height/sprite.nbAnimations;
+      this.loaded = true;
     };
-    this.width = this.image.width/divide.x;
-    this.height= this.image.height/divide.y;
   }
 
-  draw(ctx) {
+  draw(ctx, dt) {
     ctx.drawImage(
         this.image,
-        this.animCounter * this.width ,
+        Math.floor(this.animCounter) * this.width ,
         this.animNumber * this.height,
         this.width,
         this.height,
@@ -54,8 +60,23 @@ class Sprite extends Entity{
 
   update() {
     super.update();
+    if(this.dest !== null){
+      if     (this.pos.x < this.dest.x)
+        this.dir = {x:1, y:0};
+      else if(this.pos.x > this.dest.x+this.width)
+        this.dir = {x:-1, y:0};
+      else if(this.pos.y < this.dest.y)
+        this.dir = {x:0, y:1};
+      else if(this.pos.y > this.dest.y+this.height)
+        this.dir = {x:0, y:-1};
+      else{
+        console.log("arrived to dest"+JSON.stringify(this.dest));
+        this.dir = {x:0, y:0};
+        this.dest=null;
+      }
+    }
     if(this.animPlaying){
-      this.animCounter++;
+      this.animCounter = (this.animCounter+0.1)%this.animNbFrame;
     }
   }
 
@@ -63,18 +84,24 @@ class Sprite extends Entity{
     return this.image.loaded;
   }
 
-  set speed(speed){
+  changeDir(dir){
+    console.log(dir);
     this.animPlaying = true;
-    if(speed.x > 1)
+    if(dir.x > 0)
       this.animNumber = 1;
-    else if(speed.x < 1)
+    else if(dir.x < 0)
       this.animNumber = 0;
-    else if(speed.y < 1)
+    else if(dir.y < 0)
       this.animNumber = 3;
-    else if(speed.y > 1)
+    else if(dir.y > 0)
       this.animNumber = 2;
     else
       this.animPlaying = false;
+    this.dir=dir;
+  }
+
+  goto(dest) {
+    this.dest = dest;
   }
 }
 
@@ -84,7 +111,7 @@ class Square extends Entity{
     this.color="red"
 
   }
-  draw(ctx) {
+  draw(ctx, dt) {
     ctx.fillStyle = this.color
     ctx.fillRect(this.pos.x, this.pos.y, 10, 10)
   }

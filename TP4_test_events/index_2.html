@@ -9,17 +9,21 @@
 <canvas id="screen" width="1280px" height="720px" style="border:solid 1px black"></canvas>
 </body>
 <script>
-  var ctx = document.getElementById("screen").getContext("2d")
+  let canvas = document.getElementById("screen");
+  let ctx = canvas.getContext("2d")
 
-  var player = new Sprite({x:50,y:50},"player.png",{x:4,y:4});
-  var entities=[player];
+  let player = new Sprite({x:50,y:50},"player.png",{x:4,y:4});
+  let entities=[player];
+  let date = new Date()
 
   function drawGame(){
+    let curDate = new Date();
     ctx.fillStyle = "#fff";
     ctx.fillRect(0,0,1280,720);
     for(let entity of entities){
-      entity.draw(ctx)
+      entity.draw(ctx, curDate-date)
     }
+    date=curDate;
   }
   nb_ticks=0;
   function mainLoop(){
@@ -43,16 +47,16 @@
 
     switch (event.key) {
       case "ArrowDown":
-        player.dir = {y:1};
+        player.changeDir({x:0,y:1});
         break;
       case "ArrowUp":
-        player.dir = {y:-1};
+        player.changeDir({x:0,y:-1});
         break;
       case "ArrowLeft":
-        player.dir = {x:-1};
+        player.changeDir({x:-1,y:0});
         break;
       case "ArrowRight":
-        player.dir = {x:1};
+        player.changeDir({x:1,y:0});
         break;
       case "Enter":
         break;
@@ -65,19 +69,26 @@
     // Consume the event for suppressing "double action".
     event.preventDefault();
   }, true);
-  let loaded
+  canvas.addEventListener("mousedown", function(event){
+    console.log(event);
+    player.goto({x:event.clientX, y:event.clientY})
+  }, true)
+  let loaded;
 
   function launchIfLoaded() {
     loaded = true
     for (let e of entities) {
+      console.log(e.loaded);
       if (!e.loaded) {
         loaded = false
       }
     }
-    if(loaded)
+    if(loaded) {
+      date = new Date();
       mainLoop()
-    else
+    }else{
       setTimeout(launchIfLoaded,0.1)
+    }
   }
 
   launchIfLoaded()
