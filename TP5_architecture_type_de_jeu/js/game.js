@@ -155,36 +155,6 @@ function Projectile(x,y,speed,width,height,color){
 /////////////////////////////////
 // Enemy
 let enemies = [];
-let enemiesd = {
-    init : function(){
-        this.tabEnemies = [];
-    },
-    remove : function () {
-        this.tabEnemies.map(function(obj,index,array){
-            if(obj.exists === false ||obj.x >ArenaWidth || obj.x<0){
-                delete array[index];
-            }
-        });
-    },
-    draw : function(){
-        this.tabEnemies.map(function(obj){
-            obj.draw();
-        });
-    },
-    clear : function(){
-        this.tabEnemies.map(function(obj){
-            obj.clear();
-        });
-    },
-    update : function(){
-
-        this.tabEnemies.map(function(obj){
-            obj.update();
-        });
-        this.remove();
-    }
-
-};
 //test
 function Enemy(x,y,speed){
     this.x = x;
@@ -371,13 +341,13 @@ function updateItems() {
     if(tics % 100 === 0) {
         let rand = Math.floor(Math.random() * ArenaHeight);
 
-        enemies[en*(new Enemy(ArenaWidth, rand,-2));
+        enemies.push(new Enemy(ArenaWidth, rand,-2));
     }
-    for(let e of Object.values(enemies)) e.update();
-    for(let i in enemies){
-      if(enemies[i].exists === false ||enemies[i].x >ArenaWidth || enemies[i].x<0){
-        delete enemies[i];
-      }
+    for(let e of enemies) e.update();
+    for(let e of enemies){
+        if(e.exists === false || e.x >ArenaWidth || e.x<0){
+            enemies.splice(enemies.indexOf(e),1);
+        }
     }
 }
 function drawScene() {
@@ -387,12 +357,12 @@ function drawScene() {
 function drawItems() {
     "use strict";
     player.draw();
-    for(let e of Object.values(enemies)) e.draw();
+    for(let e of enemies) e.draw();
 }
 function clearItems() {
     "use strict";
     player.clear();
-    for(let e of Object.values(enemies)) e.clear();
+    for(let e of enemies) e.clear();
 }
 
 function clearScore() {
@@ -455,7 +425,7 @@ function init() {
 
 
     player.init();
-    enemies = {};
+    enemies = [];
 
     window.addEventListener("keydown", keyDownHandler, false);
     window.addEventListener("keyup", keyUpHandler, false);
