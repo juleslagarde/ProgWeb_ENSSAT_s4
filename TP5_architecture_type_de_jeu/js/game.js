@@ -1,60 +1,60 @@
-var animFrame = window.requestAnimationFrame ||
+let animFrame = window.requestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
     window.mozRequestAnimationFrame    ||
     window.oRequestAnimationFrame      ||
     window.msRequestAnimationFrame     ||
     null;
 
-var tics = 0;
-var _timeToBeAlive = 30;
+let tics = 0;
+let _timeToBeAlive = 30;
 
 //Canvas
-var divArena;
-var canArena;
-var canScore;
-var conArena;
-var conScore;
-var ArenaWidth = 700;
-var ArenaHeight = 500;
+let divArena;
+let canArena;
+let canScore;
+let conArena;
+let conScore;
+let ArenaWidth = 700;
+let ArenaHeight = 500;
 
 //Background
-var imgBackground;
-var xBackgroundOffset = 0;
-var xBackgroundSpeed = 1;
-var backgroundWidth = 1782;
-var backgroundHeight = 600;
+let imgBackground;
+let xBackgroundOffset = 0;
+let xBackgroundSpeed = 1;
+let backgroundWidth = 1782;
+let backgroundHeight = 600;
 //une modification
 
 ///////////////////////////////////
 //Keys
-var keys = {
+let inputKeys = {
     UP: 38,
     DOWN: 40,
     SPACE: 32,
     ENTER: 13
 };
 
-var keyStatus = {};
+let keyCooldown = {};
 
 function keyDownHandler(event) {
     "use strict";
-    var keycode = event.keyCode,
-        key;
-    for (key in keys) {
-        if (keys[key] === keycode) {
-            keyStatus[keycode] = true;
-            event.preventDefault();
+    let keyCode = event.keyCode;
+    for (let key in inputKeys) {
+        if (inputKeys[key] === keyCode) {
+            if(keyCooldown[keyCode]<0){
+                keyCooldown[keyCode] = 0;
+            }
         }
     }
 }
 function keyUpHandler(event) {
-    var keycode = event.keyCode,
-        key;
-    for (key in keys)
-        if (keys[key] == keycode) {
-            keyStatus[keycode] = false;
+    "use strict";
+    let keyCode = event.keyCode;
+    for (let key in inputKeys){
+        if (inputKeys[key] === keyCode) {
+            keyCooldown[keyCode] = -1;
         }
-
+    }
 }
 ///////////////////////////////////
 
@@ -64,14 +64,14 @@ function keyUpHandler(event) {
 function ProjectileSet(tabTarget){
     this.tabTarget = tabTarget;
     this.score = 0;
-    this.tabProjectiles = new Array();
+    this.tabProjectiles = [];
     this.add = function (projectile) {
         this.tabProjectiles.push(projectile);
     };
     this.remove = function () {
 
         this.tabProjectiles.map(function(obj,index,array){
-            if(obj.exists == false ||obj.x >ArenaWidth || obj.x<0){
+            if(obj.exists === false ||obj.x >ArenaWidth || obj.x<0){
                 delete array[index];
             }
         });
@@ -81,10 +81,10 @@ function ProjectileSet(tabTarget){
 
     this.update = function(){
         this.remove();
-        var score = 0;
+        let score = 0;
         this.tabProjectiles.map(function(obj){
             obj.update();
-            if(obj.exists == false) {//hit
+            if(obj.exists === false) {//hit
                 score = score +1;
             }
         });
@@ -115,15 +115,14 @@ function Projectile(x,y,speed,width,height,color){
     this.color = color;
     this.exists = true;
     this.collision = function(tabOfObjects){
-        var hits = null;
-        var index;
-        for(index in tabOfObjects){
-            if ((tabOfObjects[index].cptExplosion ==0) && this.x < tabOfObjects[index].x + tabOfObjects[index].width &&
-                this.x + this.width > tabOfObjects[index].x &&
-                this.y < tabOfObjects[index].y + tabOfObjects[index].height &&
-                this.height + this.y > tabOfObjects[index].y) {
+        let hits = null;
+        for(let i in tabOfObjects){
+            if ((tabOfObjects[i].cptExplosion === 0) && this.x < tabOfObjects[i].x + tabOfObjects[i].width &&
+                this.x + this.width > tabOfObjects[i].x &&
+                this.y < tabOfObjects[i].y + tabOfObjects[i].height &&
+                this.height + this.y > tabOfObjects[i].y) {
                 // collision detected!
-                hits = tabOfObjects[index];
+                hits = tabOfObjects[i];
                 break;
             }
         }
@@ -143,7 +142,7 @@ function Projectile(x,y,speed,width,height,color){
     this.update = function(){
         if(this.exists){
             this.x +=   this.xSpeed ;
-            var tmp = this.collision([player].concat(enemies.tabEnemies));
+            let tmp = this.collision([player].concat(enemies.tabEnemies));
             if(tmp != null){
                 tmp.explodes();
                 this.exists = false;
@@ -155,16 +154,16 @@ function Projectile(x,y,speed,width,height,color){
 
 /////////////////////////////////
 // Enemy
-var enemies = {
+let enemies = {
     init : function(){
-        this.tabEnemies = new Array();
+        this.tabEnemies = [];
     },
     add : function (enemy) {
         this.tabEnemies.push(enemy);
     },
     remove : function () {
         this.tabEnemies.map(function(obj,index,array){
-            if(obj.exists == false ||obj.x >ArenaWidth || obj.x<0){
+            if(obj.exists === false ||obj.x >ArenaWidth || obj.x<0){
                 delete array[index];
             }
         });
@@ -212,22 +211,21 @@ function Enemy(x,y,speed){
         this.cptExplosion = 1;
     };
     this.collision = function(tabOfObjects){
-        var hits = null;
-        var index;
-        for(index in tabOfObjects){
-            if (this.x < tabOfObjects[index].x + tabOfObjects[index].width &&
-                this.x + this.width > tabOfObjects[index].x &&
-                this.y < tabOfObjects[index].y + tabOfObjects[index].height &&
-                this.height + this.y > tabOfObjects[index].y) {
+        let hits = null;
+        for(let i in tabOfObjects){
+            if (this.x < tabOfObjects[i].x + tabOfObjects[i].width &&
+                this.x + this.width > tabOfObjects[i].x &&
+                this.y < tabOfObjects[i].y + tabOfObjects[i].height &&
+                this.height + this.y > tabOfObjects[i].y) {
                 // collision detected!
-                hits = tabOfObjects[index];
+                hits = tabOfObjects[i];
                 break;
             }
         }
         return hits;
     };
     this.fire = function (){
-        var tmp = new Projectile(this.x-10,this.y+this.height/2,-4,10,5,"rgb(0,200,0)");
+        let tmp = new Projectile(this.x-10,this.y+this.height/2,-4,10,5,"rgb(0,200,0)");
         this.projectileSet.add(tmp);
     };
     this.draw = function(){
@@ -250,7 +248,7 @@ function Enemy(x,y,speed){
         if(this.cptExplosion === 0){//is not exploding
             this.x +=   this.xSpeed ;
             this.y = this.yOrigine+ ArenaHeight/3 * Math.sin(this.x / 100);
-            var tmp = this.collision([player]);
+            let tmp = this.collision([player]);
             if(tmp != null){
                 tmp.explodes();
                 this.exists = false;
@@ -261,7 +259,7 @@ function Enemy(x,y,speed){
             }
             //if(tics % 50 == 1) this.fire();
         }else{
-            if(tics % 3 == 1) {
+            if(tics % 3 === 1) {
                 this.cptExplosion++;
             }
             if(this.cptExplosion>10){//end of animation
@@ -276,7 +274,7 @@ function Enemy(x,y,speed){
 
 /////////////////////////////////
 // Hero Player
-var player = {
+let player = {
     init : function(){
         this.img = new Image();
         this.img.src = "./assets/Ship/Spritesheet_64x29.png";
@@ -296,7 +294,7 @@ var player = {
     nbOfLives : 2,
     timeToBeAlive : 0,
     fires : function(){
-        var tmp = new Projectile(this.x+this.width,this.y+this.height/2,4,10,3,"rgb(200,0,0)");
+        let tmp = new Projectile(this.x+this.width,this.y+this.height/2,4,10,3,"rgb(200,0,0)");
         this.projectileSet.add(tmp);
     },
     explodes : function(){
@@ -316,42 +314,45 @@ var player = {
         this.projectileSet.clear();
     },
     update :  function(){
-        var keycode;
-        if(tics % 10 == 1) {
+        if(tics % 10 === 1) {
             this.cpt = (this.cpt + 1) % 4;
         }
         if(this.timeToBeAlive>0) {
             this.timeToBeAlive --;
         }else{
-            for (keycode in keyStatus) {
-                if(keyStatus[keycode] == true){
-                    if(keycode == keys.UP) {
+            for (let keyCode in keyCooldown) {
+                if(keyCooldown[keyCode] === 0){
+                    if(keyCode == inputKeys.UP) {
+                        keyCooldown[keyCode] = 2;
                         this.y -= this.ySpeed;
                         if(this.y<0) this.y=0;
                     }
-                    if(keycode == keys.DOWN) {
+                    if(keyCode == inputKeys.DOWN) {
+                        keyCooldown[keyCode] = 2;
                         this.y += this.ySpeed;
                         if(this.y>ArenaHeight-this.height) this.y=ArenaHeight-this.height;
                     }
-                    if(keycode == keys.SPACE) {
+                    if(keyCode == inputKeys.SPACE) {
                         //shoot
+                        keyCooldown[keyCode] = 10;
                         this.fires();
                     }
+                }else if(keyCooldown[keyCode] > 0){
+                    keyCooldown[keyCode]--;
                 }
-                keyStatus[keycode] = false;
             }
         }
         this.projectileSet.update();
     },
     draw : function(){
-        if(this.timeToBeAlive == 0) {
+        if(this.timeToBeAlive === 0) {
 
             conArena.drawImage(this.img, 0,this.cpt*this.height,this.width,this.height, this.x,this.y,this.width,this.height);
         }else{
             //exploding
-            if(this.cptExplosion!=0){
+            if(this.cptExplosion !== 0){
                 conArena.drawImage(this.imgExplosion, this.cptExplosion*this.imgExplosionWidth, 0, this.imgExplosionWidth,this.imgExplosionHeight, this.x,this.y,this.width,this.height);
-                if(tics % 3 == 1) {this.cptExplosion++;}
+                if(tics % 3 === 0) {this.cptExplosion++;}
                 if(this.cptExplosion>10) this.cptExplosion=0;
             }
         }
@@ -370,7 +371,7 @@ function updateItems() {
     player.update();
     tics++;
     if(tics % 100 === 0) {
-        var rand = Math.floor(Math.random() * ArenaHeight);
+        let rand = Math.floor(Math.random() * ArenaHeight);
 
         enemies.add(new Enemy(ArenaWidth, rand,-2));
     }
