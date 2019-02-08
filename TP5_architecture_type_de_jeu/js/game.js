@@ -142,7 +142,7 @@ function Projectile(x,y,speed,width,height,color){
     this.update = function(){
         if(this.exists){
             this.x +=   this.xSpeed ;
-            let tmp = this.collision([player].concat(enemies.tabEnemies));
+            let tmp = this.collision([player].concat(enemies));
             if(tmp != null){
                 tmp.explodes();
                 this.exists = false;
@@ -154,12 +154,10 @@ function Projectile(x,y,speed,width,height,color){
 
 /////////////////////////////////
 // Enemy
-let enemies = {
+let enemies = [];
+let enemiesd = {
     init : function(){
         this.tabEnemies = [];
-    },
-    add : function (enemy) {
-        this.tabEnemies.push(enemy);
     },
     remove : function () {
         this.tabEnemies.map(function(obj,index,array){
@@ -373,9 +371,14 @@ function updateItems() {
     if(tics % 100 === 0) {
         let rand = Math.floor(Math.random() * ArenaHeight);
 
-        enemies.add(new Enemy(ArenaWidth, rand,-2));
+        enemies[en*(new Enemy(ArenaWidth, rand,-2));
     }
-    enemies.update();
+    for(let e of Object.values(enemies)) e.update();
+    for(let i in enemies){
+      if(enemies[i].exists === false ||enemies[i].x >ArenaWidth || enemies[i].x<0){
+        delete enemies[i];
+      }
+    }
 }
 function drawScene() {
     "use strict";
@@ -384,12 +387,12 @@ function drawScene() {
 function drawItems() {
     "use strict";
     player.draw();
-    enemies.draw();
+    for(let e of Object.values(enemies)) e.draw();
 }
 function clearItems() {
     "use strict";
     player.clear();
-    enemies.clear();
+    for(let e of Object.values(enemies)) e.clear();
 }
 
 function clearScore() {
@@ -452,7 +455,7 @@ function init() {
 
 
     player.init();
-    enemies.init();
+    enemies = {};
 
     window.addEventListener("keydown", keyDownHandler, false);
     window.addEventListener("keyup", keyUpHandler, false);
