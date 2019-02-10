@@ -44,6 +44,7 @@ function keyDownHandler(event) {
             if(keyCooldown[keyCode]<0){
                 keyCooldown[keyCode] = 0;
             }
+            event.preventDefault();
         }
     }
 }
@@ -225,7 +226,7 @@ function Enemy(x,y,speed){
             if(tics % 5 === 1) {
                 this.cpt = (this.cpt + 1) % 6;
             }
-            //if(tics % 50 == 1) this.fire();
+            if(tics % 50 === 1) this.fire();
         }else{
             if(tics % 3 === 1) {
                 this.cptExplosion++;
