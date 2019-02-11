@@ -6,24 +6,14 @@ let animFrame = window.requestAnimationFrame ||
     null;
 
 let tics = 0;
-let _timeToBeAlive = 30;
 
 //Canvas
 let divArena;
-let canArena;
-let canScore;
-let conArena;
-let conScore;
+let ctxArena;
 let ArenaWidth = 700;
 let ArenaHeight = 500;
 
-//Background
-let imgBackground;
-let xBackgroundOffset = 0;
-let xBackgroundSpeed = 1;
-let backgroundWidth = 1782;
-let backgroundHeight = 600;
-//une modification
+let movingSpeed=5;
 
 ///////////////////////////////////
 //Keys
@@ -60,8 +50,11 @@ function keyUpHandler(event) {
     }
 }
 
+// score
+let score;
 // pieces
 let pieces;
+
 let fallingPiece;
 
 
@@ -78,57 +71,67 @@ function collision(tabOfObjects){
         }
     }
     return hits;
-};
 
 
-function drawItems() {
-    "use strict";
-}
-function clearItems() {
-    "use strict";
-    player.clear();
-    for(let e of enemies) e.clear();
 }
 
-function clearScore() {
-    conScore.clearRect(0,0,300,50);
-}
-
-function drawScore() {
-
-}
 function updateGame() {
     "use strict";
     tics++;
-    player.update();
-    if(tics % 100 === 0) {
-        let rand = Math.floor(Math.random() * ArenaHeight);
-        enemies.push(new Enemy(ArenaWidth, rand,-2));
-    }
-    for(let e of enemies) e.update();
-    /*
-    for(let e of enemies){
-        if(e.exists === false || e.x >ArenaWidth || e.x<0){
-            enemies.splice(enemies.indexOf(e),1);
+
+    for (let keyCode in keyCooldown) {
+        if(keyCooldown[keyCode] === 0){
+            if(keyCode == inputKeys.LEFT) {
+                keyCooldown[keyCode] = 2;
+                fallingPiece.pos.x -= movingSpeed;
+                if(fallingPiece.pos.x<0) fallingPiece.pos.x=0;
+            }
+            if(keyCode == inputKeys.RIGHT) {
+                keyCooldown[keyCode] = 2;
+                fallingPiece.pos.x += movingSpeed;
+                if(fallingPiece.pos.x>ArenaHeight-this.height) fallingPiece.pos.x=ArenaHeight-this.height;
+            }
+            if(keyCode == inputKeys.UP) {
+                //shoot
+                keyCooldown[keyCode] = 2;
+                fallingPiece.rotate();
+            }
+        }else if(keyCooldown[keyCode] > 0){
+            keyCooldown[keyCode]--;
         }
-    }*/
+    }
+
+    if(fallingPiece.collide(pieces)){
+        fallingPiece.falling=false;
+        //todo check position
+        pieces.push(fallingPiece);
+        fallingPiece = randomFallingPiece();
+    }
+
+    fallingPiece.pos.y+=movingSpeed;
 
 }
+
+function randomFallingPiece(){
+    let fallingPiece = new Piece(Math.random()*100+25,0, "#"+Math.floor(Math.random()*1000000),Math.floor(Math.random()*5));
+    fallingPiece.falling=true;
+    return fallingPiece;
+}
+
 function clearGame() {
     "use strict";
-    clearItems();
-    clearScore();
+    ctxArena.clearRect(150,0,300,50);//todo update coords
+
+    fallingPiece.clear(ctxArena);
 }
 
 function drawGame() {
     "use strict";
-    // score
-    conScore.fillText("life : "+player.nbOfLives, 10, 25);
-    conScore.fillText("score : "+player.projectileSet.score, 150,25);
+    //ctxArena.fillText("life : " + nbOfLives, 150, 25);
+    ctxArena.fillText("score : " + score, 150 ,25);
 
     // game
-    player.draw();
-    for(let e of enemies) e.draw();
+    fallingPiece.draw(ctxArena);
 }
 
 
@@ -148,25 +151,18 @@ function recursiveAnim () {
 function init() {
     "use strict";
     divArena = document.getElementById("arena");
-    canArena = document.createElement("canvas");
-    canArena.setAttribute("id", "canArena");
-    canArena.setAttribute("height", ArenaHeight);
-    canArena.setAttribute("width", ArenaWidth);
-    conArena = canArena.getContext("2d");
-    divArena.appendChild(canArena);
-
-    canScore = document.createElement("canvas");
-    canScore.setAttribute("id","canScore");
-    canScore.setAttribute("height", ArenaHeight);
-    canScore.setAttribute("width", ArenaWidth);
-    conScore = canScore.getContext("2d");
-    conScore.fillStyle = "rgb(200,0,0)";
-    conScore.font = 'bold 12pt Courier';
-    divArena.appendChild(canScore);
+    ctxArena = document.createElement("canvas");
+    ctxArena.setAttribute("id", "canArena");
+    ctxArena.setAttribute("height", ArenaHeight);
+    ctxArena.setAttribute("width", ArenaWidth);
+    divArena.appendChild(ctxArena);
+    ctxArena = ctxArena.getContext("2d");
+    ctxArena.fillStyle = "rgb(200,0,0)";
+    ctxArena.font = 'bold 12pt Courier';
 
 
-    player.init();
-    enemies = [];
+    fallingPiece = randomFallingPiece();
+    pieces = [];
 
     window.addEventListener("keydown", keyDownHandler, false);
     window.addEventListener("keyup", keyUpHandler, false);

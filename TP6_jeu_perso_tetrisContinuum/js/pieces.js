@@ -17,16 +17,27 @@ patternList = [
 ];
 
 class Piece{
-    falling;
     constructor(x, y, color, num){
         this.pos = {x:x,y:y};
         this.pattern=new Pattern(this,patternList[num]);
         this.color=color;
+        this.falling=false;
     }
     draw(ctx){
-        ctx.fillStyle=color;
+        ctx.fillStyle=this.color;
         let size = this.falling?30:40;
-        this.pattern.drawAt(ctx, pos, size)
+        this.pattern.drawAt(ctx, this.pos, size)
+    }
+    clear(ctx){
+        ctx.fillStyle=this.color;
+        let size = this.falling?30:40;
+        this.pattern.clearAt(ctx, this.pos, size);
+    }
+    collide(pieces){
+        return false;
+    }
+    rotate(){
+        this.pattern.rotate();
     }
 }
 
@@ -52,6 +63,16 @@ class Pattern{
                 // noinspection EqualityComparisonWithCoercionJS
                 if(this.tab[y][x]=='*')
                     ctx.fillRect(pos.x+x, pos.y+y, size, size)
+            }
+        }
+    }
+
+    clearAt(ctx, pos, size) {
+        for(let x=0; x<this.width; x++){
+            for(let y=0; y<this.height; y++){
+                // noinspection EqualityComparisonWithCoercionJS
+                if(this.tab[y][x]=='*')
+                    ctx.clearRect(pos.x+x, pos.y+y, size, size)
             }
         }
     }
