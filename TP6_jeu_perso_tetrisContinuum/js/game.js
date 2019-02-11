@@ -79,48 +79,41 @@ function updateGame() {
     "use strict";
     tics++;
 
+    fallingPiece.pos.y+=movingSpeed;
+
     for (let keyCode in keyCooldown) {
         if(keyCooldown[keyCode] === 0){
             if(keyCode == inputKeys.LEFT) {
-                keyCooldown[keyCode] = 2;
+                //keyCooldown[keyCode] = 2;
                 fallingPiece.pos.x -= movingSpeed;
                 if(fallingPiece.pos.x<0) fallingPiece.pos.x=0;
             }
             if(keyCode == inputKeys.RIGHT) {
-                keyCooldown[keyCode] = 2;
+                //keyCooldown[keyCode] = 2;
                 fallingPiece.pos.x += movingSpeed;
-                if(fallingPiece.pos.x>ArenaHeight-this.height) fallingPiece.pos.x=ArenaHeight-this.height;
+                if(fallingPiece.pos.x>ArenaWidth-fallingPiece.width)
+                    fallingPiece.pos.x=ArenaWidth-fallingPiece.width;
             }
             if(keyCode == inputKeys.UP) {
-                //shoot
-                keyCooldown[keyCode] = 2;
+                keyCooldown[keyCode] = -1;// touch up (not pressed)
                 fallingPiece.rotate();
             }
         }else if(keyCooldown[keyCode] > 0){
             keyCooldown[keyCode]--;
         }
     }
-
-    if(fallingPiece.collide(pieces)){
+    debugger;
+    if(fallingPiece.collide(pieces) || fallingPiece.pos.y + fallingPiece.height > ArenaHeight){
         fallingPiece.falling=false;
         //todo check position
         pieces.push(fallingPiece);
         fallingPiece = randomFallingPiece();
     }
-
-    fallingPiece.pos.y+=movingSpeed;
-
-}
-
-function randomFallingPiece(){
-    let fallingPiece = new Piece(Math.random()*100+25,0, "#"+Math.floor(Math.random()*1000000),Math.floor(Math.random()*5));
-    fallingPiece.falling=true;
-    return fallingPiece;
 }
 
 function clearGame() {
     "use strict";
-    ctxArena.clearRect(150,0,300,50);//todo update coords
+    ctxArena.clearRect(150,0,300,50);
 
     fallingPiece.clear(ctxArena);
 }
@@ -163,6 +156,7 @@ function init() {
 
     fallingPiece = randomFallingPiece();
     pieces = [];
+    score = 0;
 
     window.addEventListener("keydown", keyDownHandler, false);
     window.addEventListener("keyup", keyUpHandler, false);
