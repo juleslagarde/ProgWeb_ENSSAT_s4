@@ -125,6 +125,7 @@ function drawGame() {
 
     // game
     fallingPiece.draw(ctxArena);
+    for(let p of pieces) p.draw(ctxArena);
 }
 
 
