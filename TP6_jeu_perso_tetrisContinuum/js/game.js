@@ -13,9 +13,11 @@ let ctxArena;
 let ArenaWidth = 700;
 let ArenaHeight = 500;
 
-let movingSpeed=5;
-
 ///////////////////////////////////
+let speedBoost=9;
+let movingSpeed=1;
+//keyCooldown[keyCode] = 2;
+
 //Keys
 let inputKeys = {
     LEFT:   37,
@@ -27,7 +29,6 @@ let inputKeys = {
 };
 
 let keyCooldown = {};
-
 function keyDownHandler(event) {
     "use strict";
     let keyCode = event.keyCode;
@@ -48,62 +49,49 @@ function keyUpHandler(event) {
             keyCooldown[keyCode] = -1;
         }
     }
-}
 
+}
 // score
 let score;
+
 // pieces
 let pieces;
+
 
 let fallingPiece;
 
 
-function collision(tabOfObjects){
-    let hits = null;
-    for(let i in tabOfObjects){
-        if ((tabOfObjects[i].cptExplosion === 0) && this.x < tabOfObjects[i].x + tabOfObjects[i].width &&
-            this.x + this.width > tabOfObjects[i].x &&
-            this.y < tabOfObjects[i].y + tabOfObjects[i].height &&
-            this.height + this.y > tabOfObjects[i].y) {
-            // collision detected!
-            hits = tabOfObjects[i];
-            break;
-        }
-    }
-    return hits;
-
-
-}
-
 function updateGame() {
     "use strict";
+
     tics++;
 
-    fallingPiece.pos.y+=movingSpeed;
-
+    fallingPiece.moveAndCollide(0,movingSpeed, pieces);
     for (let keyCode in keyCooldown) {
         if(keyCooldown[keyCode] === 0){
             if(keyCode == inputKeys.LEFT) {
                 //keyCooldown[keyCode] = 2;
-                fallingPiece.pos.x -= movingSpeed;
-                if(fallingPiece.pos.x<0) fallingPiece.pos.x=0;
+                fallingPiece.moveAndCollide(-movingSpeed,0, pieces);
             }
             if(keyCode == inputKeys.RIGHT) {
                 //keyCooldown[keyCode] = 2;
-                fallingPiece.pos.x += movingSpeed;
-                if(fallingPiece.pos.x>ArenaWidth-fallingPiece.width)
-                    fallingPiece.pos.x=ArenaWidth-fallingPiece.width;
+                fallingPiece.moveAndCollide(movingSpeed,0, pieces);
             }
             if(keyCode == inputKeys.UP) {
                 keyCooldown[keyCode] = -1;// touch up (not pressed)
                 fallingPiece.rotate();
+                if(fallingPiece.collide(pieces))
+                    fallingPiece.rotateBack();
+            }
+            if(keyCode == inputKeys.DOWN) {
+                fallingPiece.moveAndCollide(0,speedBoost, pieces);
             }
         }else if(keyCooldown[keyCode] > 0){
             keyCooldown[keyCode]--;
         }
     }
-    debugger;
-    if(fallingPiece.collide(pieces) || fallingPiece.pos.y + fallingPiece.height > ArenaHeight){
+
+    if(fallingPiece.fallen || fallingPiece.pos.y + fallingPiece.height > ArenaHeight){
         fallingPiece.falling=false;
         //todo check position
         pieces.push(fallingPiece);
