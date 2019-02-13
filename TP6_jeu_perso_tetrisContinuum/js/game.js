@@ -9,7 +9,7 @@ let tics = 0;
 
 //constantes
 const SQUARE_SIZE=40;
-const NB_LINE_MAX=10;
+const NB_LINE_MAX=20;
 const CanWidth = 700;
 const CanHeight = 500;
 const GameWidth = 7*SQUARE_SIZE;

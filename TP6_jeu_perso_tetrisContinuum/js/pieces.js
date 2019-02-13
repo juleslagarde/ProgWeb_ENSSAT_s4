@@ -172,28 +172,41 @@ class Pattern{
 }
 
 function removeCompleteLines(pieces) {
-    let nb = [];//number of square by line
+    let nb = [];//number of square by line  (if -1 line need to be deleted)
+    let lineToDelete = [];
     //init
     for(let i=0; i<NB_LINE_MAX; i++) nb.push(0);
 
     //count number of square by line
     for(let p of pieces){
         for(let s of p.pattern.squares){
-            let lineNumber = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-(s.y+1);
-            nb[lineNumber]+=1;
+            let lineNumber = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-1-s.y;
+            if(nb[lineNumber] !== -1) nb[lineNumber] += 1;
+            if(nb[lineNumber] === 7){
+                lineToDelete.push(lineNumber);
+            }
         }
     }
     console.log(nb);
 
-    //removing line
+    //todo correction (ne fonctionne pas si une piece est coupé en deux)
+    //removing line and move down
     for(let p of pieces) {
         let squares = p.pattern.squares;
+        let lineNumberPiece = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-1;
         for (let i=0; i<squares.length;) {
-            let lineNumber = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-(squares[i].y+1);
-            if(nb[lineNumber] === 7){
+            let lineNumber = lineNumberPiece-squares[i].y;
+            if(lineToDelete.includes(lineNumber)){
                 squares.splice(i,1);
             }else i++;
         }
+        for(let i of lineToDelete) {
+            if (i <= lineNumberPiece-(p.pattern.height-1)) {
+                p.pos.y+=SQUARE_SIZE;
+            }
+        }
     }
+
+    //
 
 }
