@@ -7,15 +7,21 @@ let animFrame = window.requestAnimationFrame ||
 
 let tics = 0;
 
+//constantes
+const SQUARE_SIZE=40;
+const NB_LINE_MAX=10;
+const CanWidth = 700;
+const CanHeight = 500;
+const GameWidth = 7*SQUARE_SIZE;
+const GameHeight = 500;
+
 //Canvas
 let divArena;
 let ctxArena;
-let ArenaWidth = 700;
-let ArenaHeight = 500;
 
 ///////////////////////////////////
 let speedBoost=9;
-let movingSpeed=1;
+let movingSpeed=4;
 //keyCooldown[keyCode] = 2;
 
 //Keys
@@ -66,16 +72,16 @@ function updateGame() {
 
     tics++;
 
-    fallingPiece.moveAndCollide(0,movingSpeed, pieces);
+    let dx=0, dy=0;
     for (let keyCode in keyCooldown) {
         if(keyCooldown[keyCode] === 0){
             if(keyCode == inputKeys.LEFT) {
                 //keyCooldown[keyCode] = 2;
-                fallingPiece.moveAndCollide(-movingSpeed,0, pieces);
+                dx+=-movingSpeed;
             }
             if(keyCode == inputKeys.RIGHT) {
                 //keyCooldown[keyCode] = 2;
-                fallingPiece.moveAndCollide(movingSpeed,0, pieces);
+                dx+=movingSpeed;
             }
             if(keyCode == inputKeys.UP) {
                 keyCooldown[keyCode] = -1;// touch up (not pressed)
@@ -84,32 +90,40 @@ function updateGame() {
                     fallingPiece.rotateBack();
             }
             if(keyCode == inputKeys.DOWN) {
-                fallingPiece.moveAndCollide(0,speedBoost, pieces);
+                dy+=speedBoost;
             }
         }else if(keyCooldown[keyCode] > 0){
             keyCooldown[keyCode]--;
         }
     }
+    dy+=1;//going done naturally
+    fallingPiece.moveAndCollide(dx,dy, pieces);
 
-    if(fallingPiece.fallen || fallingPiece.pos.y + fallingPiece.height > ArenaHeight){
-        fallingPiece.falling=false;
+    if(fallingPiece.falling === false){
         //todo check position
         pieces.push(fallingPiece);
+        removeCompleteLines(pieces);
         fallingPiece = randomFallingPiece();
+        if(fallingPiece.collide(pieces)){
+            alert("GAME OVER");
+            location.reload();
+        }
     }
+
 }
 
 function clearGame() {
     "use strict";
-    ctxArena.clearRect(150,0,300,50);
+    ctxArena.clearRect(GameWidth+10,0,300,50);
 
     fallingPiece.clear(ctxArena);
+    for(let p of pieces) p.clear(ctxArena);
 }
 
 function drawGame() {
     "use strict";
     //ctxArena.fillText("life : " + nbOfLives, 150, 25);
-    ctxArena.fillText("score : " + score, 150 ,25);
+    ctxArena.fillText("score : " + score, GameWidth+10 ,25);
 
     // game
     fallingPiece.draw(ctxArena);
@@ -135,8 +149,8 @@ function init() {
     divArena = document.getElementById("arena");
     ctxArena = document.createElement("canvas");
     ctxArena.setAttribute("id", "canArena");
-    ctxArena.setAttribute("height", ArenaHeight);
-    ctxArena.setAttribute("width", ArenaWidth);
+    ctxArena.setAttribute("height", CanHeight);
+    ctxArena.setAttribute("width", CanWidth);
     divArena.appendChild(ctxArena);
     ctxArena = ctxArena.getContext("2d");
     ctxArena.fillStyle = "rgb(200,0,0)";

@@ -15,13 +15,13 @@ let patternList = [
         "**",
         "**"]
 ];
-let SQUARE_SIZE=40;
 
 
 function randomFallingPiece(){
-    let fallingPiece = new Piece(Math.random()*100+25,0, "#"+Math.floor(Math.random()*1000000),Math.floor(Math.random()*5));
-    fallingPiece.falling=true;
-    return fallingPiece;
+    let p = new Piece(0,0, "#"+Math.floor(Math.random()*1000000),Math.floor(Math.random()*5));
+    p.falling=true;
+    p.pos.x=Math.random()*(GameWidth-p.width);
+    return p;
 }
 
 class Piece{
@@ -30,7 +30,6 @@ class Piece{
         this.pattern=new Pattern(this,patternList[num]);
         this.color=color;
         this.falling=false;
-        this.fallen=false;
     }
     draw(ctx){
         ctx.fillStyle=this.color;
@@ -43,8 +42,7 @@ class Piece{
     collide(pieces){
         for(let p of pieces){
             if(!(p instanceof Piece))throw Error("collide only with pieces");
-            console.log(p.pos, this.pos);
-            let collide = p.pattern.collide(this.pattern, {x:this.pos.x-p.pos.x, y:this.pos.y-p.pos.y})
+            let collide = this.pattern.collide(p.pattern, {x:p.pos.x-this.pos.x, y:p.pos.y-this.pos.y})
             if(collide!==null)return collide;
         }
         return null;
@@ -63,16 +61,26 @@ class Piece{
     }
     moveAndCollide(dx, dy, pieces){
         this.pos.x+=dx;
-        this.pos.y+=dy;
-        if(this.pos.x>ArenaWidth-this.width) this.pos.x = ArenaWidth - this.width;
+        if(this.pos.x>GameWidth-this.width) this.pos.x = GameWidth - this.width;
         else if(this.pos.x<0) this.pos.x=0;
         let diff = this.collide(pieces);
         if(diff !== null){
-            if(dx !== 0) this.pos.x += diff.x;
-            if(dy !== 0){
-                this.pos.y += diff.y;
-                this.fallen=true;
+                 if(dx > 0) this.pos.x -= diff.right;
+            else if(dx < 0) this.pos.x -= diff.left;
+            else throw Error("error : dx == 0 (dx:"+dx+", dy:"+dy+")");
+        }
+        this.pos.y+=dy;
+        if(fallingPiece.pos.y + fallingPiece.height > GameHeight) {
+            this.pos.y=GameHeight-fallingPiece.height;
+            this.falling=false;
+        }
+        diff = this.collide(pieces);
+        if(diff !== null){
+            if(dy > 0){
+                this.pos.y -= diff.bottom;
+                this.falling=false;
             }
+            else throw Error("error : dy < 0 (dx:"+dx+", dy:"+dy+")");
         }
     }
     get width(){
@@ -94,7 +102,7 @@ class Pattern{
             for (let y = 0; y < this.height; y++) {
                 // noinspection EqualityComparisonWithCoercionJS
                 if (tab[y][x] == '*')
-                    this.squares.push({x: x, y: y});
+                    this.squares.push({x:x,y:y});
             }
         }
     }
@@ -130,13 +138,14 @@ class Pattern{
                 let r2y = s2.y*SQUARE_SIZE+off.y;
                 if (r1x + SQUARE_SIZE > r2x &&       // r1 right edge past r2 left
                     r1x < r2x + SQUARE_SIZE &&       // r1 left edge past r2 right
-                    r1y + SQUARE_SIZE > r2y &&       // r1 top edge past r2 bottom
+                    r1y + SQUARE_SIZE > r2y &&       // r1 bottom edge past r2 top
                     r1y < r2y + SQUARE_SIZE) {
                     //if() todo return correct diff
-                    debugger;
                     return {
-                        x:Math.min(Math.abs(r1x + SQUARE_SIZE - r2x), Math.abs(r1x - r2x - SQUARE_SIZE)),
-                        y:Math.min(Math.abs(r1y + SQUARE_SIZE - r2y), Math.abs(r1y - r2y - SQUARE_SIZE))
+                        right   : r1x + SQUARE_SIZE - r2x,
+                        left    : r1x - r2x - SQUARE_SIZE,
+                        bottom     : r1y + SQUARE_SIZE - r2y,
+                        top  : r1y - r2y - SQUARE_SIZE
                     };
                 }
             }
@@ -160,4 +169,31 @@ class Pattern{
     get pivot(){
         return {x:this.width/2*SQUARE_SIZE,y:this.height/2*SQUARE_SIZE};
     }
+}
+
+function removeCompleteLines(pieces) {
+    let nb = [];//number of square by line
+    //init
+    for(let i=0; i<NB_LINE_MAX; i++) nb.push(0);
+
+    //count number of square by line
+    for(let p of pieces){
+        for(let s of p.pattern.squares){
+            let lineNumber = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-(s.y+1);
+            nb[lineNumber]+=1;
+        }
+    }
+    console.log(nb);
+
+    //removing line
+    for(let p of pieces) {
+        let squares = p.pattern.squares;
+        for (let i=0; i<squares.length;) {
+            let lineNumber = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-(squares[i].y+1);
+            if(nb[lineNumber] === 7){
+                squares.splice(i,1);
+            }else i++;
+        }
+    }
+
 }
