@@ -108,7 +108,7 @@ function updateGame() {
         removeCompleteLines(squares);
         fallingPiece = randomFallingPiece();
         if(fallingPiece.collide(squares)){
-            alert("GAME OVER");
+            alert("GAME OVER\nscore : "+score);
             location.reload();
         }
     }

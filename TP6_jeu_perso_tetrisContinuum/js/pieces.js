@@ -185,6 +185,7 @@ function removeCompleteLines(squares) {
 
     for(let i=0; i<nbLineRemoved; i++) squares.push([]);
     console.log(nbLineRemoved+" line removed");
+    score+=nbLineRemoved;
 
 }
 
