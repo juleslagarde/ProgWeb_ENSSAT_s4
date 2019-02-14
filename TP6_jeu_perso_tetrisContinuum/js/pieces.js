@@ -39,14 +39,32 @@ class Piece{
     clear(ctx){
         this.pattern.clearAt(ctx, this.pos);
     }
-    collide(pieces){
-        for(let p of pieces){
-            if(!(p instanceof Piece))throw Error("collide only with pieces");
-            let collide = this.pattern.collide(p.pattern, {x:p.pos.x-this.pos.x, y:p.pos.y-this.pos.y})
-            if(collide!==null)return collide;
+    collide(squares){
+        for(let s1 of this.pattern.squares){
+            for(let y in squares) {
+                for(let s of squares[y]){
+                    let r1x = this.pos.x+s1.x*SQUARE_SIZE;
+                    let r1y = this.pos.y+s1.y*SQUARE_SIZE;
+                    let r2x = s.x;
+                    let r2y = linePos(y);
+                    if (r1x + SQUARE_SIZE > r2x &&       // r1 right edge past r2 left
+                        r1x < r2x + SQUARE_SIZE &&       // r1 left edge past r2 right
+                        r1y + SQUARE_SIZE > r2y &&       // r1 bottom edge past r2 top
+                        r1y < r2y + SQUARE_SIZE) {
+                        //if() todo return correct diff
+                        return {
+                            right   : r1x + SQUARE_SIZE - r2x,
+                            left    : r1x - r2x - SQUARE_SIZE,
+                            bottom     : r1y + SQUARE_SIZE - r2y,
+                            top  : r1y - r2y - SQUARE_SIZE
+                        };
+                    }
+                }
+            }
         }
         return null;
     }
+
     rotate(){
         let oP = this.pattern.pivot;
         this.pattern.rotate();
@@ -59,11 +77,11 @@ class Piece{
         let nP = this.pattern.pivot;
         this.pos = {x:this.pos.x-nP.x+oP.x,y:this.pos.y-nP.y+oP.y}
     }
-    moveAndCollide(dx, dy, pieces){
+    moveAndCollide(dx, dy, squares){
         this.pos.x+=dx;
         if(this.pos.x>GameWidth-this.width) this.pos.x = GameWidth - this.width;
         else if(this.pos.x<0) this.pos.x=0;
-        let diff = this.collide(pieces);
+        let diff = this.collide(squares);
         if(diff !== null){
                  if(dx > 0) this.pos.x -= diff.right;
             else if(dx < 0) this.pos.x -= diff.left;
@@ -74,7 +92,7 @@ class Piece{
             this.pos.y=GameHeight-fallingPiece.height;
             this.falling=false;
         }
-        diff = this.collide(pieces);
+        diff = this.collide(squares);
         if(diff !== null){
             if(dy > 0){
                 this.pos.y -= diff.bottom;
@@ -88,6 +106,9 @@ class Piece{
     }
     get height(){
         return this.pattern.height*SQUARE_SIZE;
+    }
+    get lineNumber(){
+        return Math.floor((GameHeight-this.pos.y)/SQUARE_SIZE)-1;
     }
 }
 
@@ -129,29 +150,6 @@ class Pattern{
         this.width=this.height;
         this.height=tmp;
     }
-    collide(p, off){
-        for(let s1 of this.squares){
-            for(let s2 of p.squares) {
-                let r1x = s1.x*SQUARE_SIZE;
-                let r1y = s1.y*SQUARE_SIZE;
-                let r2x = s2.x*SQUARE_SIZE+off.x;
-                let r2y = s2.y*SQUARE_SIZE+off.y;
-                if (r1x + SQUARE_SIZE > r2x &&       // r1 right edge past r2 left
-                    r1x < r2x + SQUARE_SIZE &&       // r1 left edge past r2 right
-                    r1y + SQUARE_SIZE > r2y &&       // r1 bottom edge past r2 top
-                    r1y < r2y + SQUARE_SIZE) {
-                    //if() todo return correct diff
-                    return {
-                        right   : r1x + SQUARE_SIZE - r2x,
-                        left    : r1x - r2x - SQUARE_SIZE,
-                        bottom     : r1y + SQUARE_SIZE - r2y,
-                        top  : r1y - r2y - SQUARE_SIZE
-                    };
-                }
-            }
-        }
-        return null;
-    }
 
     drawAt(ctx,pos, padding){
         for(let s of this.squares){
@@ -171,42 +169,31 @@ class Pattern{
     }
 }
 
-function removeCompleteLines(pieces) {
-    let nb = [];//number of square by line  (if -1 line need to be deleted)
-    let lineToDelete = [];
-    //init
-    for(let i=0; i<NB_LINE_MAX; i++) nb.push(0);
+function linePos(y) {
+    return GameHeight - (parseInt(y) + 1) * SQUARE_SIZE;
+}
 
-    //count number of square by line
-    for(let p of pieces){
-        for(let s of p.pattern.squares){
-            let lineNumber = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-1-s.y;
-            if(nb[lineNumber] !== -1) nb[lineNumber] += 1;
-            if(nb[lineNumber] === 7){
-                lineToDelete.push(lineNumber);
-            }
-        }
-    }
-    console.log(nb);
+function removeCompleteLines(squares) {
 
-    //todo correction (ne fonctionne pas si une piece est coupé en deux)
-    //removing line and move down
-    for(let p of pieces) {
-        let squares = p.pattern.squares;
-        let lineNumberPiece = Math.floor((GameHeight-p.pos.y)/SQUARE_SIZE)-1;
-        for (let i=0; i<squares.length;) {
-            let lineNumber = lineNumberPiece-squares[i].y;
-            if(lineToDelete.includes(lineNumber)){
-                squares.splice(i,1);
-            }else i++;
-        }
-        for(let i of lineToDelete) {
-            if (i <= lineNumberPiece-(p.pattern.height-1)) {
-                p.pos.y+=SQUARE_SIZE;
-            }
-        }
+    let nbLineRemoved=0;
+    for(let i=0; i<squares.length; ){
+        if(squares[i].length === 7){
+            squares.splice(i,1); //remove line
+            nbLineRemoved++;
+        }else i++
     }
 
-    //
+    for(let i=0; i<nbLineRemoved; i++) squares.push([]);
+    console.log(nbLineRemoved+" line removed");
 
+}
+
+class Square{
+    constructor(x, y, color){
+        this.x=x;
+        this.color = color;
+    }
+    lineNumber(y){
+        return Math.floor((GameHeight-y)/SQUARE_SIZE)-1;
+    }
 }

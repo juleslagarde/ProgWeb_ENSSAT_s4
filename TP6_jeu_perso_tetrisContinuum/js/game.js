@@ -60,8 +60,8 @@ function keyUpHandler(event) {
 // score
 let score;
 
-// pieces
-let pieces;
+// squares
+let squares;
 
 
 let fallingPiece;
@@ -86,7 +86,7 @@ function updateGame() {
             if(keyCode == inputKeys.UP) {
                 keyCooldown[keyCode] = -1;// touch up (not pressed)
                 fallingPiece.rotate();
-                if(fallingPiece.collide(pieces))
+                if(fallingPiece.collide(squares))
                     fallingPiece.rotateBack();
             }
             if(keyCode == inputKeys.DOWN) {
@@ -97,14 +97,17 @@ function updateGame() {
         }
     }
     dy+=1;//going done naturally
-    fallingPiece.moveAndCollide(dx,dy, pieces);
+    fallingPiece.moveAndCollide(dx,dy, squares);
 
     if(fallingPiece.falling === false){
-        //todo check position
-        pieces.push(fallingPiece);
-        removeCompleteLines(pieces);
+        let p=fallingPiece;
+        for(let s of p.pattern.squares) {
+            let finalS = new Square(p.pos.x+s.x*SQUARE_SIZE, p.pos.y+s.y*SQUARE_SIZE, p.color);
+            squares[p.lineNumber-s.y].push(finalS);
+        }
+        removeCompleteLines(squares);
         fallingPiece = randomFallingPiece();
-        if(fallingPiece.collide(pieces)){
+        if(fallingPiece.collide(squares)){
             alert("GAME OVER");
             location.reload();
         }
@@ -117,7 +120,11 @@ function clearGame() {
     ctxArena.clearRect(GameWidth+10,0,300,50);
 
     fallingPiece.clear(ctxArena);
-    for(let p of pieces) p.clear(ctxArena);
+    for(let y in squares) {
+        for (let s of squares[y]) {
+            ctxArena.clearRect(s.x, linePos(y), SQUARE_SIZE, SQUARE_SIZE);
+        }
+    }
 }
 
 function drawGame() {
@@ -127,7 +134,12 @@ function drawGame() {
 
     // game
     fallingPiece.draw(ctxArena);
-    for(let p of pieces) p.draw(ctxArena);
+    for(let y in squares) {
+        for (let s of squares[y]) {
+            ctxArena.fillStyle = s.color;
+            ctxArena.fillRect(s.x, linePos(y), SQUARE_SIZE, SQUARE_SIZE);
+        }
+    }
 }
 
 
@@ -158,8 +170,11 @@ function init() {
 
 
     fallingPiece = randomFallingPiece();
-    pieces = [];
     score = 0;
+    squares = [];
+    for(let i=0; i<NB_LINE_MAX; i++)
+        squares.push([]);
+
 
     window.addEventListener("keydown", keyDownHandler, false);
     window.addEventListener("keyup", keyUpHandler, false);
